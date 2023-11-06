@@ -160,7 +160,7 @@ def process_data(data):
     
     ```
     + {word}({hypenation} {proncode} {pos} {tooltiplevel} {freq} {[speechurl]}) [gram] -> if global.gram
-      + **{SIGNPOST}** [gram if not global.gram] {define} | [SYN|OPP]:{syn|opp} -> {RelatedWD}
+      + **{SIGNPOST}** [gram if not global.gram] {define} | [SYN|OPP]:{syn|opp}
         + {example} -> if not collo
         
         + **{collo}** -> if collo
@@ -173,12 +173,13 @@ def process_data(data):
         data (list[Munch()]): list of Munch() which are json style
     """
     headTemplate = '{word} ({hyphenation}, {proncode}{pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
+    defTemplate = '{signpost}{gram}{define}{SYN}{OPP}'
     
     for dictEntry in data:
         filling_dict = resolve_Head(dictEntry)
         headString = headTemplate.format(**filling_dict)
-        print(headString)
         senses = dictEntry.sense
+        
         # sense are list[Munch()]
         for sense in senses:
             pass
