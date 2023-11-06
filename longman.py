@@ -64,8 +64,10 @@ def extract_data(soup):
             print(dicts)
         
         # Get Hyphenation
-        hyphenation = frequent_head.find('span', attrs={'class': 'HYPHENATION'}).text.strip()
-        entry.hyphenation = hyphenation
+        if (hyphenation := frequent_head.find('span', attrs={'class': 'HYPHENATION'})) != None:
+            entry.hyphenation = hyphenation.text.strip()
+        # hyphenation = frequent_head.find('span', attrs={'class': 'HYPHENATION'}).text.strip()
+        # entry.hyphenation = hyphenation
         # Get Pronunciation
         proncode = frequent_head.find('span', attrs={'class': 'PRON'})
         if proncode != None:
@@ -110,11 +112,11 @@ def extract_data(soup):
             if len(syns := sense.find_all('span', attrs={'class': 'SYN'})) != 0:
                 singleSense.syn = []
                 for syn in syns:
-                    singleSense.syn.append(syn.text.strip(',').strip())
+                    singleSense.syn.append(syn.text.lstrip('SYN ').strip(',').strip())
             if len(opps := sense.find_all('span', attrs={'class': 'OPP'})) != 0:
                 singleSense.opp = []
                 for opp in opps:
-                    singleSense.opp.append(opp.text.strip(',').strip())
+                    singleSense.opp.append(opp.find('span', class_='span').next_sibling.text.strip())
                     
             # Get Examples
             singleSense.examples = []
@@ -170,13 +172,17 @@ def process_data(data):
     Args:
         data (list[Munch()]): list of Munch() which are json style
     """
-    headTemplate = '{word} ({hyphenation}, {proncode}, {pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
+    headTemplate = '{word} ({hyphenation}, {proncode}{pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
     
     for dictEntry in data:
         filling_dict = resolve_Head(dictEntry)
-        output = headTemplate.format(**filling_dict)
-        print(output)
-        exit(0)
+        headString = headTemplate.format(**filling_dict)
+        print(headString)
+        senses = dictEntry.sense
+        # sense are list[Munch()]
+        for sense in senses:
+            pass
+        
     
     
 
@@ -184,9 +190,9 @@ def resolve_Head(dictEntry) -> Munch():
     filling_dict = Munch()
     filling_dict.word = dictEntry.word
     filling_dict.hyphenation = dictEntry.hyphenation
-    filling_dict.proncode = dictEntry.proncode
-    if filling_dict.proncode != None:
-        filling_dict.proncode = '/' + filling_dict.proncode + '/'
+    filling_dict.proncode = dictEntry.get('proncode', "")
+    if filling_dict.proncode != "":
+        filling_dict.proncode = '/' + filling_dict.proncode + '/, '
     filling_dict.pos = dictEntry.pos
     filling_dict.tooltiplevel = dictEntry.get('tooltiplevel', "")
     if filling_dict.tooltiplevel != "":
@@ -212,10 +218,10 @@ def store_data(data):
     Args:
         data (_type_): _description_
     """
-    with open('outputs.md', 'w', encoding='utf-8') as f:
+    with open('words.md', 'w', encoding='utf-8') as f:
         # f.write(data)
         json.dump(data, f, ensure_ascii=False, indent=4)
-        f.close()
+        
 
 
 if __name__ == '__main__':
@@ -223,4 +229,6 @@ if __name__ == '__main__':
     parser.add_argument('--word', type=str, required=True, help='Word to search')
     parser = parser.parse_args()
     word = parser.word
-    scrape_longman(word)
+    test_word = ['drink', 'mimic', 'malicious', 'narrow', 'deficiency', 'evident']
+    for word in test_word:
+        scrape_longman(word)

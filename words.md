@@ -1,86 +1,45 @@
 [
     {
-        "word": "narrow",
-        "hyphenation": "nar‧row",
-        "proncode": "ˈnærəʊ",
-        "tooltiplevel": "High-frequency",
-        "freq": [
-            "S3",
-            "W2"
-        ],
-        "pos": " adjective",
-        "speechurl": "https://www.ldoceonline.com/media/english/ameProns/ld41narrow.mp3?version=1.2.64",
+        "word": "evident",
+        "hyphenation": "ev‧i‧dent",
+        "proncode": "ˈevɪdənt",
+        "tooltiplevel": "Medium-frequency",
+        "pos": "adjective",
+        "speechurl": "https://www.ldoceonline.com/media/english/ameProns/evident.mp3?version=1.2.64",
         "sense": [
             {
-                "signpost": "not wide",
-                "define": " measuring only a small distance from one side to the other, especially in relation to the length",
-                "opp": [
-                    "OPP wide"
+                "define": "easy to see, notice, or understand",
+                "syn": [
+                    "obvious",
+                    "clear"
                 ],
                 "examples": [
                     {
-                        "COLLO": "narrow street/road/path etc",
+                        "PROP": "evident that",
                         "examples": [
-                            "a long narrow road",
-                            "the narrow passage between the cottage and the house"
+                            "It was evident that she was unhappy.",
+                            "It soon became evident that she was seriously ill.",
+                            "It was clearly evident that the company was in financial difficulties."
                         ]
                     },
-                    "a long narrow road",
-                    "the narrow passage between the cottage and the house",
-                    "his narrow bed",
-                    "The stairs were very narrow.",
-                    "a long, narrow band of cloud"
-                ]
-            },
-            {
-                "signpost": "ideas/attitudes",
-                "define": " a narrow attitude or way of looking at a situation is too limited and does not consider enough possibilities",
-                "opp": [
-                    "OPP broad"
-                ],
-                "examples": [
-                    "You’ve got a very narrow view of life.",
-                    "Some teachers have a narrow vision of what art is."
-                ]
-            },
-            {
-                "signpost": "limited",
-                "define": " limited in range or number of things",
-                "opp": [
-                    "OPP broad"
-                ],
-                "examples": [
-                    "The company offered only a narrow range of financial services."
-                ]
-            }
-        ]
-    },
-    {
-        "word": "narrow",
-        "hyphenation": "narrow",
-        "tooltiplevel": "Lower-frequency",
-        "pos": " verb",
-        "speechurl": "https://www.ldoceonline.com/media/english/ameProns/ld41narrow2.mp3?version=1.2.64",
-        "gram": "[ [intransitive, transitive]]",
-        "sense": [
-            {
-                "define": "to make something narrower, or to become narrower",
-                "opp": [
-                    "OPP widen"
-                ],
-                "examples": [
-                    "He narrowed his eyes and gazed at the horizon.",
-                    "The track divided into two and narrowed."
-                ]
-            },
-            {
-                "define": "if a range, difference etc narrows, or if something narrows it, it becomes less",
-                "opp": [
-                    "OPP widen"
-                ],
-                "examples": [
-                    "The choice of goods available is narrowing.",
-                    "The economic gap between the two halves of the country was beginning to narrow."
+                    "It was evident that she was unhappy.",
+                    "It soon became evident that she was seriously ill.",
+                    "It was clearly evident that the company was in financial difficulties.",
+                    {
+                        "PROP": "evident to",
+                        "examples": [
+                            "It was evident to me that he was not telling the truth."
+                        ]
+                    },
+                    "It was evident to me that he was not telling the truth.",
+                    {
+                        "PROP": "evident in",
+                        "examples": [
+                            "The growing popularity of the subject is evident in the numbers of students wanting to study it."
+                        ]
+                    },
+                    "The growing popularity of the subject is evident in the numbers of students wanting to study it.",
+                    "Bob ate his lunch with evident enjoyment."
                 ]
             }
         ]
