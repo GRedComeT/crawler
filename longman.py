@@ -6,7 +6,7 @@ import json
 import argparse
 
 
-def scrape_longman(word):
+def scrape_longman(word, port=1080):
     """_summary_
 
     Args:
@@ -18,14 +18,14 @@ def scrape_longman(word):
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
         'Connection':'close'
     }
-    
-    response = requests.get(url, headers=header, proxies={'https': 'http://127.0.0.1:1080'})
+    proxy = f'http://127.0.0.1:{port}'
+    response = requests.get(url, headers=header, proxies={'https': proxy})
     
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
         # Extract data
         data = extract_data(soup)
-        process_data(data)
+        data = process_data(data)
         # Store data
         store_data(data)
     else:
@@ -89,7 +89,7 @@ def extract_data(soup):
         gram = frequent_head.find('span', attrs={'class': 'GRAM'})
         is_gram = False
         if gram != None:
-            entry.gram = '[' + gram.text.strip() + ']'
+            entry.gram = gram.text.strip()
             is_gram = True 
         # Get Sense
         senses = dicts.find_all('span', attrs={'class': 'Sense'})
@@ -172,13 +172,15 @@ def process_data(data):
     Args:
         data (list[Munch()]): list of Munch() which are json style
     """
-    headTemplate = '+ {word} ({hyphenation}, {proncode}{pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
-    defTemplate = '  + {signpost}{gram}{define}{SYN}{OPP}'
+    headTemplate = '+ {word} ({hyphenation}, {proncode}{pos}. {tooltiplevel}{freq}[Amp]({speechurl})) {gram}\n'
+    defTemplate = '  + {signpost}{gram}{define}{SYN}{OPP}\n'
     
     
     results = []
     
     for dictEntry in data:
+        ''' Every entries have a head and a list of senses, which contains one define and a list of examples'''
+
         entries = []
         head_dict = resolve_Head(dictEntry)
         headString = headTemplate.format(**head_dict)
@@ -207,8 +209,9 @@ def process_data(data):
                         raise Exception('Unknown example type')
                 else:
                     raise Exception('Unknown example type')
-
-        results.append(entryString)
+            entries.append(exampleString)
+        results.append(''.join(entries))
+    return results
         
     
     
@@ -234,7 +237,7 @@ def resolve_Head(dictEntry) -> Munch():
     filling_dict.speechurl = dictEntry.speechurl
     filling_dict.gram = dictEntry.get('gram', "")
     if filling_dict.gram != "":
-        filling_dict.gram = '[' + filling_dict.gram + ']'
+        filling_dict.gram = filling_dict.gram
     return filling_dict
       
 def resolve_Def(sense) -> Munch():
@@ -248,10 +251,10 @@ def resolve_Def(sense) -> Munch():
     def_dic.define = sense.define
     def_dic.SYN = sense.get('syn', "")
     if def_dic.SYN != "":
-        def_dic.SYN = ' | SYN:' + ', '.join(def_dic.SYN)
+        def_dic.SYN = ' | SYN: ' + ', '.join(def_dic.SYN)
     def_dic.OPP = sense.get('opp', "")
     if def_dic.OPP != "":
-        def_dic.OPP = ' | OPP:' + ', '.join(def_dic.OPP)
+        def_dic.OPP = ' | OPP: ' + ', '.join(def_dic.OPP)
     return def_dic
 
 def store_data(data):
@@ -260,20 +263,21 @@ def store_data(data):
     Args:
         data (_type_): _description_
     """
-    with open('words.md', 'w', encoding='utf-8') as f:
-        # f.write(data)
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    with open('words.md', 'a+', encoding='utf-8') as f:
+        f.write('\n'.join(data))
+        # json.dump(data, f, ensure_ascii=False, indent=4)
         
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--word', type=str, default="", help='Word to search')
+    parser.add_argument('--port', type=int, default=1080, help='Proxy port')
     parser = parser.parse_args()
     word = parser.word
     if word != "":
-        scrape_longman(word)
+        scrape_longman(word, port=parser.port)
     else:
         test_word = ['drink', 'mimic', 'malicious', 'narrow', 'deficiency', 'evident']
         for word in test_word:
-            scrape_longman(word)
+            scrape_longman(word, port=parser.port)
