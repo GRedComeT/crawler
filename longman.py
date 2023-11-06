@@ -172,17 +172,43 @@ def process_data(data):
     Args:
         data (list[Munch()]): list of Munch() which are json style
     """
-    headTemplate = '{word} ({hyphenation}, {proncode}{pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
-    defTemplate = '{signpost}{gram}{define}{SYN}{OPP}'
+    headTemplate = '+ {word} ({hyphenation}, {proncode}{pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
+    defTemplate = '  + {signpost}{gram}{define}{SYN}{OPP}'
+    
+    
+    results = []
     
     for dictEntry in data:
-        filling_dict = resolve_Head(dictEntry)
-        headString = headTemplate.format(**filling_dict)
+        entries = []
+        head_dict = resolve_Head(dictEntry)
+        headString = headTemplate.format(**head_dict)
+        entries.append(headString)
         senses = dictEntry.sense
-        
         # sense are list[Munch()]
         for sense in senses:
-            pass
+            def_dict = resolve_Def(sense)
+            defString = defTemplate.format(**def_dict)
+            entries.append(defString)
+            examples = sense.examples
+            exampleString = ""
+            for example in examples:
+                if isinstance(example, str):
+                    exampleString += '    + ' + example + '\n'
+                elif isinstance(example, Munch):
+                    if 'COLLO' in example:
+                        exampleString += '    + **' + example.COLLO + '**\n'
+                        for in_example in example.examples:
+                            exampleString += '      + ' + in_example + '\n'
+                    elif 'PROP' in example:
+                        exampleString += '    + **' + example.PROP + '**\n'
+                        for in_example in example.examples:
+                            exampleString += '      + ' + in_example + '\n'
+                    else:
+                        raise Exception('Unknown example type')
+                else:
+                    raise Exception('Unknown example type')
+
+        results.append(entryString)
         
     
     
@@ -211,7 +237,22 @@ def resolve_Head(dictEntry) -> Munch():
         filling_dict.gram = '[' + filling_dict.gram + ']'
     return filling_dict
       
-    
+def resolve_Def(sense) -> Munch():
+    def_dic = Munch()
+    def_dic.signpost = sense.get('signpost', "")
+    if def_dic.signpost != "":
+        def_dic.signpost = '**' + def_dic.signpost + '** '
+    def_dic.gram = sense.get('gram', "")
+    if def_dic.gram != "":
+        def_dic.gram = def_dic.gram + ' '
+    def_dic.define = sense.define
+    def_dic.SYN = sense.get('syn', "")
+    if def_dic.SYN != "":
+        def_dic.SYN = ' | SYN:' + ', '.join(def_dic.SYN)
+    def_dic.OPP = sense.get('opp', "")
+    if def_dic.OPP != "":
+        def_dic.OPP = ' | OPP:' + ', '.join(def_dic.OPP)
+    return def_dic
 
 def store_data(data):
     """_summary_
@@ -227,9 +268,12 @@ def store_data(data):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--word', type=str, required=True, help='Word to search')
+    parser.add_argument('--word', type=str, default="", help='Word to search')
     parser = parser.parse_args()
     word = parser.word
-    test_word = ['drink', 'mimic', 'malicious', 'narrow', 'deficiency', 'evident']
-    for word in test_word:
+    if word != "":
         scrape_longman(word)
+    else:
+        test_word = ['drink', 'mimic', 'malicious', 'narrow', 'deficiency', 'evident']
+        for word in test_word:
+            scrape_longman(word)
