@@ -25,6 +25,7 @@ def scrape_longman(word):
         soup = BeautifulSoup(response.text, "html.parser")
         # Extract data
         data = extract_data(soup)
+        process_data(data)
         # Store data
         store_data(data)
     else:
@@ -63,12 +64,12 @@ def extract_data(soup):
             print(dicts)
         
         # Get Hyphenation
-        hyphenation = frequent_head.find('span', attrs={'class': 'HYPHENATION'}).text
+        hyphenation = frequent_head.find('span', attrs={'class': 'HYPHENATION'}).text.strip()
         entry.hyphenation = hyphenation
         # Get Pronunciation
         proncode = frequent_head.find('span', attrs={'class': 'PRON'})
         if proncode != None:
-            entry.proncode = proncode.text
+            entry.proncode = proncode.text.strip()
         # Get Tooltiplevel
         tooltiplevel = frequent_head.find('span', attrs={'class': 'tooltip LEVEL'})
         if tooltiplevel != None:
@@ -77,16 +78,16 @@ def extract_data(soup):
         if len(freqs := frequent_head.find_all('span', attrs={'class': 'FREQ'})) != 0:
             entry.freq = []
             for freq in freqs:
-                entry.freq.append(freq.text)
+                entry.freq.append(freq.text.strip())
         # Get Pos
-        entry.pos = frequent_head.find('span', attrs={'class': 'POS'}).text
+        entry.pos = frequent_head.find('span', attrs={'class': 'POS'}).text.strip()
         # Get Speech
         entry.speechurl = frequent_head.find('span', attrs={'title': f'Play American pronunciation of {entry.word}'}).get('data-src-mp3')
         # Get Global GRAM
         gram = frequent_head.find('span', attrs={'class': 'GRAM'})
         is_gram = False
         if gram != None:
-            entry.gram = '[' + gram.text + ']'
+            entry.gram = '[' + gram.text.strip() + ']'
             is_gram = True 
         # Get Sense
         senses = dicts.find_all('span', attrs={'class': 'Sense'})
@@ -169,7 +170,41 @@ def process_data(data):
     Args:
         data (list[Munch()]): list of Munch() which are json style
     """
-    pass
+    headTemplate = '{word} ({hyphenation}, {proncode}, {pos}, {tooltiplevel}{freq}[{speechurl}]) {gram}'
+    
+    for dictEntry in data:
+        filling_dict = resolve_Head(dictEntry)
+        output = headTemplate.format(**filling_dict)
+        print(output)
+        exit(0)
+    
+    
+
+def resolve_Head(dictEntry) -> Munch():
+    filling_dict = Munch()
+    filling_dict.word = dictEntry.word
+    filling_dict.hyphenation = dictEntry.hyphenation
+    filling_dict.proncode = dictEntry.proncode
+    if filling_dict.proncode != None:
+        filling_dict.proncode = '/' + filling_dict.proncode + '/'
+    filling_dict.pos = dictEntry.pos
+    filling_dict.tooltiplevel = dictEntry.get('tooltiplevel', "")
+    if filling_dict.tooltiplevel != "":
+        filling_dict.tooltiplevel += ', '
+    filling_dict.freq = dictEntry.get('freq', "")
+    if filling_dict.freq != "":
+        if len(filling_dict.freq) == 1:
+            filling_dict.freq = filling_dict.freq[0]
+        else:
+            filling_dict.freq = filling_dict.freq[0] + ', ' + filling_dict.freq[1]
+        filling_dict.freq += ', '
+    filling_dict.speechurl = dictEntry.speechurl
+    filling_dict.gram = dictEntry.get('gram', "")
+    if filling_dict.gram != "":
+        filling_dict.gram = '[' + filling_dict.gram + ']'
+    return filling_dict
+      
+    
 
 def store_data(data):
     """_summary_
@@ -177,7 +212,7 @@ def store_data(data):
     Args:
         data (_type_): _description_
     """
-    with open('words.md', 'w', encoding='utf-8') as f:
+    with open('outputs.md', 'w', encoding='utf-8') as f:
         # f.write(data)
         json.dump(data, f, ensure_ascii=False, indent=4)
         f.close()
