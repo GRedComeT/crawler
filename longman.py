@@ -6,7 +6,7 @@ import json
 import argparse
 
 
-def scrape_longman(word, port=1080):
+def scrape_longman(word, port=1080, output='output.md'):
     """_summary_
 
     Args:
@@ -27,7 +27,7 @@ def scrape_longman(word, port=1080):
         data = extract_data(soup)
         data = process_data(data)
         # Store data
-        store_data(data)
+        store_data(data, output)
     else:
         print("Error: ", response.status_code)
     response.close()
@@ -172,8 +172,8 @@ def process_data(data):
     Args:
         data (list[Munch()]): list of Munch() which are json style
     """
-    headTemplate = '+ {word} ({hyphenation}, {proncode}{pos}. {tooltiplevel}{freq}[Amp]({speechurl})) {gram}\n'
-    defTemplate = '  + {signpost}{gram}{define}{SYN}{OPP}\n'
+    headTemplate = '\n+ {word} ({hyphenation}, {proncode}{pos}. {tooltiplevel}{freq}[Amp]({speechurl})) {gram}\n'
+    defTemplate = '\t+ {signpost}{gram}{define}{SYN}{OPP}\n'
     
     
     results = []
@@ -195,16 +195,16 @@ def process_data(data):
             exampleString = ""
             for example in examples:
                 if isinstance(example, str):
-                    exampleString += '    + ' + example + '\n'
+                    exampleString += '\t\t+ ' + example + '\n'
                 elif isinstance(example, Munch):
                     if 'COLLO' in example:
-                        exampleString += '    + **' + example.COLLO + '**\n'
+                        exampleString += '\t\t+ [**' + example.COLLO + '**]\n'
                         for in_example in example.examples:
-                            exampleString += '      + ' + in_example + '\n'
+                            exampleString += '\t\t\t+ ' + in_example + '\n'
                     elif 'PROP' in example:
-                        exampleString += '    + **' + example.PROP + '**\n'
+                        exampleString += '\t\t+ [**' + example.PROP + '**]\n'
                         for in_example in example.examples:
-                            exampleString += '      + ' + in_example + '\n'
+                            exampleString += '\t\t\t+ ' + in_example + '\n'
                     else:
                         raise Exception('Unknown example type')
                 else:
@@ -257,27 +257,39 @@ def resolve_Def(sense) -> Munch():
         def_dic.OPP = ' | OPP: ' + ', '.join(def_dic.OPP)
     return def_dic
 
-def store_data(data):
+def store_data(data, outputs):
     """_summary_
 
     Args:
         data (_type_): _description_
     """
-    with open('words.md', 'a+', encoding='utf-8') as f:
-        f.write('\n'.join(data))
+    with open(outputs, 'a+', encoding='utf-8') as f:
+        f.write(''.join(data))
         # json.dump(data, f, ensure_ascii=False, indent=4)
         
+def resolve_Word_From_MD(file):
+    word_list = []
+    with open(file, 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            word_list.append(line.lstrip('+').strip())
+    return word_list
 
-
-if __name__ == '__main__':
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--word', type=str, default="", help='Word to search')
     parser.add_argument('--port', type=int, default=1080, help='Proxy port')
-    parser = parser.parse_args()
+    parser.add_argument('--file', type=str, default='words.md', help='File to search')
+    parser.add_argument('--output', type=str, default='output.md', help='Output file')
+    
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    
+    parser = parse_args()
     word = parser.word
     if word != "":
-        scrape_longman(word, port=parser.port)
+        scrape_longman(word, port=parser.port, output=parser.output)
     else:
-        test_word = ['drink', 'mimic', 'malicious', 'narrow', 'deficiency', 'evident']
-        for word in test_word:
-            scrape_longman(word, port=parser.port)
+        word_list = resolve_Word_From_MD(parser.file)
+        for word in word_list:
+            scrape_longman(word, port=parser.port, output=parser.output)
