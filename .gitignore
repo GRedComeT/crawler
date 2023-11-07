@@ -162,3 +162,4 @@ cython_debug/
 
 # Own File
 words.md
+output.md
